@@ -1,0 +1,23 @@
+# compiled output
+/dist
+/target
+
+# dependencies
+
+# IDEs and editors
+/.idea
+/.vscode
+.project
+.classpath
+*.launch
+.settings/
+
+# misc
+*.log
+client_secret.json
+StoredCredential
+hs_err_pid*
+
+#System Files
+.DS_Store
+Thumbs.db
