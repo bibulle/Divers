@@ -2,25 +2,36 @@ package com.em.portal;
 
 import java.text.MessageFormat;
 
+/**
+ * Class to "optimize" portal positioning in the Nether Hub in Minecraft
+ */
+
 public class Main {
 
     static final int ERROR = 1000000000;
-    private static final int MAX_COUNTER = 500;
+    private static final int MAX_COUNTER = 1000;
 
     public static void main(String[] args) {
 
+        //calculateOptim(MinimizedDistance.SUM_DIST         , DistanceFelt.EUCLIDEAN_VERTICAL_WEIGHT);
+        //calculateOptim(MinimizedDistance.MAX_DIST         , DistanceFelt.EUCLIDEAN_VERTICAL_WEIGHT);
+        //calculateOptim(MinimizedDistance.MAX_DIST_WITH_SUM, DistanceFelt.EUCLIDEAN_VERTICAL_WEIGHT);
 
+        calculateOptim(MinimizedDistance.MAX_DIST_WITH_SUM, DistanceFelt.EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED);
+        //calculateOptim(MinimizedDistance.MAX_DIST_WITH_SUM, DistanceFelt.EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED_PLUS);
+
+    }
+
+    private static void calculateOptim(MinimizedDistance minimizedDistance, DistanceFelt distanceFelt) {
         Portal[] portals = {
                 new Portal(248, 67, -7),
-                new Portal(796, 80, -215),
+                new Portal(795, 81, -218),
                 new Portal(335, 34, 144),
                 new Portal(227, 53, 145),
-                new Portal(199, 42, 131),
-                new Portal(173, 5, 178)
+                new Portal(199, 42, 132),
+                new Portal(173, 6, 178)
         };
 
-        MinimizedDistance minimizedDistance = MinimizedDistance.MAX_DIST_WITH_SUM;
-        DistanceFelt distanceFelt = DistanceFelt.EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED;
 
         double dist;
         int cpt = 0;
@@ -56,7 +67,7 @@ public class Main {
             }
 
             if (nether != null) {
-                System.out.println(cpt + "\t " + dist);
+                //System.out.println(cpt + "\t " + dist);
                 portals[i].realNether = nether;
                 lastCpt = cpt;
             } else {
@@ -90,10 +101,8 @@ public class Main {
                             portal.getRealNether()
                                   .getZ()));
         }
-        System.out.println();
-
-        System.out.println(calcDistance(portals, minimizedDistance, distanceFelt, false));
-
+        //System.out.println();
+        //System.out.println(calcDistance(portals, minimizedDistance, distanceFelt, false));
     }
 
     private static double calcDistance(Portal[] portals, MinimizedDistance minimizedDistance, DistanceFelt distanceFelt) {
@@ -149,7 +158,7 @@ public class Main {
 
     enum MinimizedDistance {SUM_DIST, MAX_DIST, MAX_DIST_WITH_SUM}
 
-    enum DistanceFelt {EUCLIDEAN, EUCLIDEAN_VERTICAL_WEIGHT, EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED}
+    enum DistanceFelt {EUCLIDEAN, EUCLIDEAN_VERTICAL_WEIGHT, EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED, EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED_PLUS}
 
 
     static class Portal {
@@ -231,13 +240,10 @@ public class Main {
                     continue;
                 }
                 if (debug) {
-                    System.out.println("calcDistNetherOk        : " + realNether.distEuclidean(portal.getRealOver()
-                                                                                                     .toNether()));
+                    System.out.println("calcDistNetherOk        : " + getRealOver().toNether().distEuclidean(portal.getRealNether()));
                 }
-                if (realNether.distEuclidean(portal.getRealOver()
-                                                   .toNether()) <= dist) {
-                    distRet += ERROR * Math.abs(1 + dist - realNether.distEuclidean(portal.getRealOver()
-                                                                                          .toNether()));
+                if (getRealOver().toNether().distEuclidean(portal.getRealNether()) <= dist) {
+                    distRet += ERROR * Math.abs(1 + dist - getRealOver().toNether().distEuclidean(portal.getRealNether()));
                 }
             }
 
@@ -316,9 +322,25 @@ public class Main {
                     break;
                 case EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED:
                     dist = Math.sqrt(Math.pow(b2.getX() - this.getX(), 2) + Math.pow(b2.getY() - this.getY(), 8) + Math.pow(b2.getZ() - this.getZ(), 2));
+                    dist += 800 * Math.min(Math.abs(b2.getX() - this.getX()), Math.abs(b2.getZ() - this.getZ()));
+                    break;
+                case EUCLIDEAN_VERTICAL_WEIGHT_ALIGNED_PLUS:
+                    dist = Math.sqrt(Math.pow(b2.getX() - this.getX(), 2) + Math.pow(b2.getY() - this.getY(), 8) + Math.pow(b2.getZ() - this.getZ(), 2));
                     dist += 800000 * Math.min(Math.abs(b2.getX() - this.getX()), Math.abs(b2.getZ() - this.getZ()));
                     break;
             }
+
+            // add dist to be y close to 42
+            dist+=1000*Math.pow(42 - this.getY(), 8);
+            dist+=1000*Math.pow(42 - b2.getY(), 8);
+
+            // add min distance to DIST_MIN
+            int DIST_MIN = 8;
+            if (Math.pow(b2.getX() - this.getX(), 2) + Math.pow(b2.getZ() - this.getZ(), 2) != 0) {
+                dist+=1000*(DIST_MIN-Math.min(DIST_MIN, Math.sqrt(Math.pow(b2.getX() - this.getX(), 2) + Math.pow(b2.getZ() - this.getZ(), 2))));
+                //System.out.println(this+" - "+b2+" -> "+(Math.pow(b2.getX() - this.getX(), 2) + Math.pow(b2.getZ() - this.getZ(), 2))+" ("+(Math.min(DIST_MIN, Math.sqrt(Math.pow(b2.getX() - this.getX(), 2) + Math.pow(b2.getZ() - this.getZ(), 2)))-DIST_MIN)+")");
+            }
+
             return dist;
         }
 

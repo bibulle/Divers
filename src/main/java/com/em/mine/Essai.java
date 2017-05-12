@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Class to get biomes in chunk from input file to present them in google sheet
+ */
 public class Essai {
 
     public static void main(String[] args) {
